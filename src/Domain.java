@@ -7,11 +7,13 @@ public class Domain
 {
     private int id;
     private List<Integer> values;
+    private int cardinality;
 
-    public Domain(int id, List<Integer> values)
+    public Domain(int id, List<Integer> values, int cardinality)
     {
         this.id = id;
         this.values = values;
+        this.cardinality = cardinality;
     }
 
     public int getId()
@@ -37,5 +39,15 @@ public class Domain
     public int getSize()
     {
         return values.size();
+    }
+
+    public int getCardinality()
+    {
+        return cardinality;
+    }
+
+    public void setCardinality(int cardinality)
+    {
+        this.cardinality = cardinality;
     }
 }
