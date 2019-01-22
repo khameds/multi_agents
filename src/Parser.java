@@ -1,5 +1,10 @@
+import input.scen01.FileLoader;
+
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 
 public class Parser
 {
@@ -19,14 +24,9 @@ public class Parser
     private List<Domain> domains;
 
     /**
-     * Location of input files :
-     * var.txt, dom.txt, ctr.txt, cst.txt ,
-     */
-    private String inputFolder;
-    /**
      * Basic constructor, init lists
      */
-    public Parser(String inputFolder)
+    public Parser()
     {
         frequencies = new ArrayList<>();
         constraints = new ArrayList<>();
@@ -35,16 +35,47 @@ public class Parser
 
     public void readInputs()
     {
-        System.out.println("Current input folder : " + inputFolder);
-        readInputs(inputFolder + "var.txt",
-                   inputFolder + "dom.txt",
-                   inputFolder + "ctr.txt",
-                   inputFolder + "cst.txt");
+        FileLoader fileLoader = new FileLoader();
+
+        readInputs(fileLoader.getVarFile(),
+                   fileLoader.getDomFile(),
+                   fileLoader.getCtrFile(),
+                   fileLoader.getCstFile());
     }
 
-    public void readInputs(String varPath, String domPath, String ctrPath, String cstPath)
+    public void readInputs(String varFile, String domFile, String ctrFile, String cstFile)
     {
+        readVarFile(varFile);
+    }
 
+    private void readVarFile(String varFile)
+    {
+        /**
+         * Read 'var.txt' File
+         */
+        System.out.println("Reading : " + varFile);
+        try (BufferedReader br = new BufferedReader(new FileReader(varFile))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = Util.cleanInputString(line);
+                List<String> data = Arrays.asList(line.split(" "));
+                Frequency frequency = new Frequency(Integer.parseInt(data.get(0)),  // Variable Id
+                                                    0, // AgentId (unknown yet)
+                                                    Integer.parseInt(data.get(1))); // Domain Id
+                frequencies.add(frequency);
+            }
+            System.out.println(frequencies.size() + " frequencies added.");
+            br.close(); // Free everything
+        }
+        catch (FileNotFoundException fn)
+        {
+            System.out.println("File not found  : " + varFile);
+            System.out.println(fn.getMessage());
+        }
+        catch (IOException io)
+        {
+            System.out.println(io.getMessage());
+        }
     }
 
     /*** Getters ans Setters ***/
