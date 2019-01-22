@@ -3,6 +3,12 @@ public class Criteria
     private int a1,a2,a3,a4;
     private int b1,b2,b3,b4;
 
+    public Criteria()
+    {
+        a1 = a2 = a3 = a4 = 0;
+        b1 = b2 = b3 = b4 = 0;
+    }
+
     public Criteria(int a1, int a2, int a3, int a4, int b1, int b2, int b3, int b4)
     {
         this.a1 = a1;
