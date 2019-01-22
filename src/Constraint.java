@@ -13,19 +13,15 @@ public class Constraint
     private int k12;                            // Field 5
     private int weight;                         // Field 6
 
-    public Constraint(int frequenceId1, int frequenceId2, enum_ConstraintType constraintType, enum_Operator operator, int k12, int weight)
+    public Constraint(int frequenceId1, int frequenceId2, enum_ConstraintType constraintType, enum_Operator operator, int k12)
     {
         this.frequenceId1 = frequenceId1;
         this.frequenceId2 = frequenceId2;
         this.constraintType = constraintType;
         this.operator = operator;
         this.k12 = k12;
-        this.weight = weight;
+        this.weight = 0;
     }
-
-
-
-
 
     /*** Getters and Setters ***/
 
