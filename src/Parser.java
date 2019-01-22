@@ -283,7 +283,7 @@ public class Parser
             predicatesElement.setAttribute("nbPredicates", "3");
             rootElement.appendChild(predicatesElement);
 
-            //Predicate EQUAL => Hard constraint
+            // Constraints with '=' operator are defined as hard constraints (EQUAL)
             Element predicate = doc.createElement("predicate");
             predicate.setAttribute("name", "EQUAL");
             Element parameters = doc.createElement("parameters");
@@ -296,7 +296,7 @@ public class Parser
             predicate.appendChild(expression);
             predicatesElement.appendChild(predicate);
 
-            //Predicate GTHARD => Hard constraint
+            // Constraint with '>' operator are defined as hard constraints (GTHARD)
             predicate = doc.createElement("predicate");
             predicate.setAttribute("name", "GTHARD");
             parameters = doc.createElement("parameters");
@@ -361,7 +361,9 @@ public class Parser
                         cost = criterias.getA4();
                         break;
                 }
-                String params = "f"+c.getFrequenceId1()+" f"+c.getFrequenceId2()+ " "+c.getK12()+ (cost!=-1?" "+cost:"");
+                String params = "f" + c.getFrequenceId1()
+                        + " f"+c.getFrequenceId2() + " "
+                        + c.getK12() + (cost!=-1?" "+cost:"");
                 param.appendChild(doc.createTextNode(params));
                 constraint.appendChild(param);
                 constraintsElement.appendChild(constraint);
