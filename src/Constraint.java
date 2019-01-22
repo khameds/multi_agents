@@ -1,6 +1,9 @@
 import Enum.enum_ConstraintType;
 import Enum.enum_Operator;
 
+/**
+ *  Define relations between variable tuples
+ */
 public class Constraint
 {
     private int frequenceId1;                   // Field 1
@@ -9,6 +12,22 @@ public class Constraint
     private enum_Operator operator;             // Field 4
     private int k12;                            // Field 5
     private int weight;                         // Field 6
+
+    public Constraint(int frequenceId1, int frequenceId2, enum_ConstraintType constraintType, enum_Operator operator, int k12, int weight)
+    {
+        this.frequenceId1 = frequenceId1;
+        this.frequenceId2 = frequenceId2;
+        this.constraintType = constraintType;
+        this.operator = operator;
+        this.k12 = k12;
+        this.weight = weight;
+    }
+
+
+
+
+
+    /*** Getters and Setters ***/
 
     public int getFrequenceId1()
     {
