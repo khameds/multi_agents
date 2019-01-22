@@ -72,7 +72,7 @@ public class Parser
         /**
          * Read 'var.txt' File
          */
-        System.out.println("Reading : " + varFile);
+        //System.out.println("Reading : " + varFile);
         try (BufferedReader br = new BufferedReader(new FileReader(varFile))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -102,7 +102,7 @@ public class Parser
         /**
          * Read 'dom.txt' File
          */
-        System.out.println("Reading : " + domFile);
+        //System.out.println("Reading : " + domFile);
         try (BufferedReader br = new BufferedReader(new FileReader(domFile))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -141,7 +141,7 @@ public class Parser
         /**
          * Read 'ctr.txt' File
          */
-        System.out.println("Reading : " + ctrFile);
+        //System.out.println("Reading : " + ctrFile);
         try (BufferedReader br = new BufferedReader(new FileReader(ctrFile))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -196,28 +196,76 @@ public class Parser
         /**
          * Read 'cst.txt' File
          */
+        try (BufferedReader br = new BufferedReader(new FileReader(cstFile)))
+        {
+            String line;
+            while ((line = br.readLine()) != null && !line.contains("a1 ="))
+            {
+                line = Util.cleanInputString(line);
+            }
 
-        // TODO : Optimisation part
-        System.out.println("Cannot read yet : " + cstFile);
-        System.out.println("Optimisation criterias are : " +
-                                   "a1 =   1000\n" +
-                                   "a2 =    100\n" +
-                                   "a3 =      2\n" +
-                                   "a4 =      1\n" +
-                                   "b1 = 100000\n" +
-                                   "b2 =  10000\n" +
-                                   "b3 =    100\n" +
-                                   "b4 =     10");
-        criterias.setA1(1000);
-        criterias.setA2(100);
-        criterias.setA3(2);
-        criterias.setA4(1);
-        criterias.setB1(10000);
-        criterias.setB2(1000);
-        criterias.setB3(100);
-        criterias.setB4(10);
+            List<Integer> criteria = new ArrayList<>();
+            do
+            {
+                line = Util.cleanInputString(line);
+                List<String> data = Arrays.asList(line.split(" "));
+
+                criteria.add(Integer.parseInt(data.get(2)));
+            }
+            while ((line = br.readLine()) != null);
+
+            if(criteria.size() >= 8)
+            {
+                criterias.setA1(criteria.get(0));
+                criterias.setA2(criteria.get(1));
+                criterias.setA3(criteria.get(2));
+                criterias.setA4(criteria.get(3));
+                criterias.setB1(criteria.get(4));
+                criterias.setB2(criteria.get(5));
+                criterias.setB3(criteria.get(6));
+                criterias.setB4(criteria.get(7));
+
+            }
+            else
+            {
+                System.out.println("Failed to read optimisation criteria from :\n"
+                                           + cstFile + "(" + criteria.size() + ")");
+                criterias.setA1(1000);
+                criterias.setA2(100);
+                criterias.setA3(2);
+                criterias.setA4(1);
+                criterias.setB1(10000);
+                criterias.setB2(1000);
+                criterias.setB3(100);
+                criterias.setB4(10);
+            }
+            br.close(); // Free everything
+        }
+        catch (FileNotFoundException fn)
+        {
+            System.out.println("File not found  : " + cstFile );
+            System.out.println(fn.getMessage());
+        }
+        catch (IOException io)
+        {
+            System.out.println(io.getMessage());
+        }
+
+        System.out.println("Optimisation criterias are : "
+                                   + "a1 = " + criterias.getA1()
+                                   + " a2 = " + criterias.getA2()
+                                   + " a3 = " + criterias.getA3()
+                                   + " a4 = " + criterias.getA4()
+                                   + " b1 = " + criterias.getB1()
+                                   + " b2 = " + criterias.getB2()
+                                   + " b3 = " + criterias.getB3()
+                                   + " b4 = " + criterias.getB4());
     }
 
+    /**
+     *
+     * @param fileName output xml file name
+     */
     public void createNaiveXML(String fileName)
     {
         try
@@ -225,12 +273,12 @@ public class Parser
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
 
-            // Create instance element (root)
+            /*** CREATE INSTANCE ELEMENT (root) ***/
             Document doc = db.newDocument();
             Element rootElement = doc.createElement("instance");
             doc.appendChild(rootElement);
 
-            // Create presentation element
+            /*** CREATE PRESENTATION ELEMENT ***/
             Element presentationElement = doc.createElement("presentation");
             presentationElement.setAttribute("name", "sampleProblem");
             presentationElement.setAttribute("maxConstraintArity", "2");
@@ -238,7 +286,7 @@ public class Parser
             presentationElement.setAttribute("format", "XCSP 2.1_FRODO");
             rootElement.appendChild(presentationElement);
 
-            // Create agents element
+            /*** CREATE AGENTS ELEMENT ***/
             Element agentsElement = doc.createElement("agents");
             // In the case of naive generation we dont try to optimise the agent number (each agent handle one variable
             agentsElement.setAttribute("nbAgents", String.valueOf(frequencies.size()));
@@ -249,7 +297,7 @@ public class Parser
                 agentsElement.appendChild(agent);
             }
 
-            // Create domains element
+            /*** CREATE DOMAINS ELEMENT ***/
             Element domainsElement = doc.createElement("domains");
             domainsElement.setAttribute("nbDomains", String.valueOf(domains.size()));
             rootElement.appendChild(domainsElement);
@@ -265,7 +313,7 @@ public class Parser
                 domainsElement.appendChild(domainElement);
             }
 
-            // Create variables element
+            /*** CREATE VARIABLES ELEMENT ***/
             Element variablesElement = doc.createElement("variables");
             variablesElement.setAttribute("nbVariables", String.valueOf(frequencies.size()));
             rootElement.appendChild(variablesElement);
@@ -277,7 +325,7 @@ public class Parser
                 variablesElement.appendChild(variable);
             }
 
-            // Create predicates element,
+            /*** CREATE PREDICATES ELEMENT ***/
             // Each predicate declares a whitespace delimited list of parameters, each preceded by its type
             Element predicatesElement = doc.createElement("predicates");
             predicatesElement.setAttribute("nbPredicates", "3");
@@ -296,7 +344,7 @@ public class Parser
             predicate.appendChild(expression);
             predicatesElement.appendChild(predicate);
 
-            // Constraint with '>' operator are defined as hard constraints (GTHARD)
+            // Constraints with '>' operator are defined as hard constraints (GTHARD)
             predicate = doc.createElement("predicate");
             predicate.setAttribute("name", "GTHARD");
             parameters = doc.createElement("parameters");
@@ -309,7 +357,7 @@ public class Parser
             predicate.appendChild(expression);
             predicatesElement.appendChild(predicate);
 
-            //Predicate GTSOFT => soft constraint
+            // Constraints with non defined weight are defined as soft constraints (GTSOFT)
             predicate = doc.createElement("function");
             predicate.setAttribute("name", "GTSOFT");
             parameters = doc.createElement("parameters");
@@ -322,7 +370,7 @@ public class Parser
             predicate.appendChild(expression);
             predicatesElement.appendChild(predicate);
 
-            //Constraints
+            /*** CREATE CONSTRAINTS ELEMENT ***/
             Element constraintsElement = doc.createElement("constraints");
             constraintsElement.setAttribute("nbConstraints", String.valueOf(constraints.size()));
             rootElement.appendChild(constraintsElement);
@@ -369,13 +417,15 @@ public class Parser
                 constraintsElement.appendChild(constraint);
             }
 
-            // Generate the xml file
+            /*** Generate the xml file ***/
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             DOMSource source = new DOMSource(doc);
             StreamResult result = new StreamResult(new File(fileName));
             transformer.transform(source, result);
+
+            System.out.println("-> Generated xml file : " + fileName);
 
         }
         catch (ParserConfigurationException pce)
