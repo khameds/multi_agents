@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -9,10 +10,10 @@ public class Domain
     private List<Integer> values;
     private int cardinality;
 
-    public Domain(int id, List<Integer> values, int cardinality)
+    public Domain(int id, int cardinality)
     {
         this.id = id;
-        this.values = values;
+        this.values = new ArrayList<>();
         this.cardinality = cardinality;
     }
 
@@ -49,5 +50,10 @@ public class Domain
     public void setCardinality(int cardinality)
     {
         this.cardinality = cardinality;
+    }
+
+    public void addValue(int i)
+    {
+        this.values.add(i);
     }
 }
