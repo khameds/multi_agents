@@ -7,6 +7,18 @@ import java.util.List;
 
 import Enum.enum_ConstraintType;
 import Enum.enum_Operator;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class Parser
 {
@@ -25,6 +37,7 @@ public class Parser
      */
     private List<Domain> domains;
 
+    private Criteria criterias;
     /**
      * Basic constructor, init lists
      */
@@ -33,6 +46,7 @@ public class Parser
         frequencies = new ArrayList<>();
         constraints = new ArrayList<>();
         domains = new ArrayList<>();
+        criterias = new Criteria();
     }
 
     public void readInputs()
@@ -185,6 +199,193 @@ public class Parser
 
         // TODO : Optimisation part
         System.out.println("Cannot read yet : " + cstFile);
+        System.out.println("Optimisation criterias are : " +
+                                   "a1 =   1000\n" +
+                                   "a2 =    100\n" +
+                                   "a3 =      2\n" +
+                                   "a4 =      1\n" +
+                                   "b1 = 100000\n" +
+                                   "b2 =  10000\n" +
+                                   "b3 =    100\n" +
+                                   "b4 =     10");
+        criterias.setA1(1000);
+        criterias.setA2(100);
+        criterias.setA3(2);
+        criterias.setA4(1);
+        criterias.setB1(10000);
+        criterias.setB2(1000);
+        criterias.setB3(100);
+        criterias.setB4(10);
+    }
+
+    public void createNaiveXML(String fileName)
+    {
+        try
+        {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+
+            // Create instance element (root)
+            Document doc = db.newDocument();
+            Element rootElement = doc.createElement("instance");
+            doc.appendChild(rootElement);
+
+            // Create presentation element
+            Element presentationElement = doc.createElement("presentation");
+            presentationElement.setAttribute("name", "sampleProblem");
+            presentationElement.setAttribute("maxConstraintArity", "2");
+            presentationElement.setAttribute("maximize", "false");
+            presentationElement.setAttribute("format", "XCSP 2.1_FRODO");
+            rootElement.appendChild(presentationElement);
+
+            // Create agents element
+            Element agentsElement = doc.createElement("agents");
+            // In the case of naive generation we dont try to optimise the agent number (each agent handle one variable
+            agentsElement.setAttribute("nbAgents", String.valueOf(frequencies.size()));
+            rootElement.appendChild(agentsElement);
+            for (Frequency frequency : frequencies){
+                Element agent = doc.createElement("agent");
+                agent.setAttribute("name", "agent"+frequency.getId());
+                agentsElement.appendChild(agent);
+            }
+
+            // Create domains element
+            Element domainsElement = doc.createElement("domains");
+            domainsElement.setAttribute("nbDomains", String.valueOf(domains.size()));
+            rootElement.appendChild(domainsElement);
+            for (Domain domain : domains){
+                Element domainElement = doc.createElement("domain");
+                domainElement.setAttribute("name", "domain" + domain.getId());
+                domainElement.setAttribute("nbValues", String.valueOf(domain.getCardinality()));
+                String domainValues = "";
+                for (Integer domainValue : domain.getValues()){
+                    domainValues += String.valueOf(domainValue) + " ";
+                }
+                domainElement.appendChild(doc.createTextNode(domainValues));
+                domainsElement.appendChild(domainElement);
+            }
+
+            // Create variables element
+            Element variablesElement = doc.createElement("variables");
+            variablesElement.setAttribute("nbVariables", String.valueOf(frequencies.size()));
+            rootElement.appendChild(variablesElement);
+            for (Frequency frequency : frequencies){
+                Element variable = doc.createElement("variable");
+                variable.setAttribute("name", "f" + frequency.getId());
+                variable.setAttribute("domain", "domain" + frequency.getDomainId());
+                variable.setAttribute("agent", "agent" + frequency.getId());
+                variablesElement.appendChild(variable);
+            }
+
+            // Create predicates element,
+            // Each predicate declares a whitespace delimited list of parameters, each preceded by its type
+            Element predicatesElement = doc.createElement("predicates");
+            predicatesElement.setAttribute("nbPredicates", "3");
+            rootElement.appendChild(predicatesElement);
+
+            //Predicate EQUAL => Hard constraint
+            Element predicate = doc.createElement("predicate");
+            predicate.setAttribute("name", "EQUAL");
+            Element parameters = doc.createElement("parameters");
+            parameters.appendChild(doc.createTextNode(" int F1 int F2 int VALUE "));
+            predicate.appendChild(parameters);
+            Element expression = doc.createElement("expression");
+            Element functional = doc.createElement("functional");
+            functional.appendChild(doc.createTextNode(" eq(abs(sub(F1, F2)),VALUE) "));
+            expression.appendChild(functional);
+            predicate.appendChild(expression);
+            predicatesElement.appendChild(predicate);
+
+            //Predicate GTHARD => Hard constraint
+            predicate = doc.createElement("predicate");
+            predicate.setAttribute("name", "GTHARD");
+            parameters = doc.createElement("parameters");
+            parameters.appendChild(doc.createTextNode(" int F1 int F2 int VALUE "));
+            predicate.appendChild(parameters);
+            expression = doc.createElement("expression");
+            functional = doc.createElement("functional");
+            functional.appendChild(doc.createTextNode(" gt(abs(sub(F1, F2)),VALUE) "));
+            expression.appendChild(functional);
+            predicate.appendChild(expression);
+            predicatesElement.appendChild(predicate);
+
+            //Predicate GTSOFT => soft constraint
+            predicate = doc.createElement("function");
+            predicate.setAttribute("name", "GTSOFT");
+            parameters = doc.createElement("parameters");
+            parameters.appendChild(doc.createTextNode(" int F1 int F2 int VALUE int COST"));
+            predicate.appendChild(parameters);
+            expression = doc.createElement("expression");
+            functional = doc.createElement("functional");
+            functional.appendChild(doc.createTextNode(" if(gt(abs(sub(F1, F2)),VALUE),0, COST) "));
+            expression.appendChild(functional);
+            predicate.appendChild(expression);
+            predicatesElement.appendChild(predicate);
+
+            //Constraints
+            Element constraintsElement = doc.createElement("constraints");
+            constraintsElement.setAttribute("nbConstraints", String.valueOf(constraints.size()));
+            rootElement.appendChild(constraintsElement);
+            for (Constraint c : constraints){
+                Element constraint = doc.createElement("constraint");
+                constraint.setAttribute("name",
+                                        c.getFrequenceId1() + "_" + c.getFrequenceId2() + "_" + c.getK12());
+                constraint.setAttribute("arity", "2");
+                constraint.setAttribute("scope",
+                                        "f"+c.getFrequenceId1() + " f" + c.getFrequenceId2());
+                if (c.getConstraintType() == enum_ConstraintType.Difference )
+                {
+                    constraint.setAttribute("reference", "EQUAL");
+                }
+                else if (c.getWeight() != -1)
+                {// Input file didn't provided it
+                    constraint.setAttribute("reference", "GTSOFT");
+                }
+                else
+                {
+                    constraint.setAttribute("reference", "GTHARD");
+                }
+                Element param = doc.createElement("parameters");
+                int cost=-1;
+                switch (c.getWeight()){
+                    case 1:
+                        cost = criterias.getA1();
+                        break;
+                    case 2:
+                        cost = criterias.getA2();
+                        break;
+                    case 3:
+                        cost = criterias.getA3();
+                        break;
+                    case 4:
+                        cost = criterias.getA4();
+                        break;
+                }
+                String params = "f"+c.getFrequenceId1()+" f"+c.getFrequenceId2()+ " "+c.getK12()+ (cost!=-1?" "+cost:"");
+                param.appendChild(doc.createTextNode(params));
+                constraint.appendChild(param);
+                constraintsElement.appendChild(constraint);
+            }
+
+            // Generate the xml file
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new File(fileName));
+            transformer.transform(source, result);
+
+        }
+        catch (ParserConfigurationException pce)
+        {
+            System.out.println(pce.getMessage());
+            pce.printStackTrace();
+        }
+        catch (TransformerException tfe)
+        {
+            System.out.println(tfe.getMessage());
+            tfe.printStackTrace();
+        }
     }
 
     /*** Getters ans Setters ***/
