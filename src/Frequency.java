@@ -5,13 +5,13 @@ public class Frequency
 {
     private int id;
     private int agentId;
-    private int domain;
+    private int domainId;
 
-    public Frequency(int id, int agentId, int domain)
+    public Frequency(int id, int agentId, int domainId)
     {
         this.id = id;
         this.agentId = agentId;
-        this.domain = domain;
+        this.domainId = domainId;
     }
 
     /*** Getters and Setters ***/
@@ -35,14 +35,14 @@ public class Frequency
         this.agentId = agentId;
     }
 
-    public int getDomain()
+    public int getDomainId()
     {
-        return domain;
+        return domainId;
     }
 
-    public void setDomain(int domain)
+    public void setDomainId(int domainId)
     {
-        this.domain = domain;
+        this.domainId = domainId;
     }
 
 
