@@ -20,7 +20,7 @@ public class Constraint
         this.constraintType = constraintType;
         this.operator = operator;
         this.k12 = k12;
-        this.weight = 0;
+        this.weight = -1;
     }
 
     /*** Getters and Setters ***/
