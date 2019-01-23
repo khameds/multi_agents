@@ -105,6 +105,7 @@ public class Parser
         //System.out.println("Reading : " + domFile);
         try (BufferedReader br = new BufferedReader(new FileReader(domFile))) {
             String line;
+            br.readLine();
             while ((line = br.readLine()) != null) {
                 line = Util.cleanInputString(line);
                 List<String> data = Arrays.asList(line.split(" "));
