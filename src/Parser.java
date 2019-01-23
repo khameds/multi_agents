@@ -1,4 +1,4 @@
-import input.scen09.FileLoader;
+import input.scen01.FileLoader;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -205,14 +205,17 @@ public class Parser
             }
 
             List<Integer> criteria = new ArrayList<>();
-            do
+            if(line != null)
             {
-                line = Util.cleanInputString(line);
-                List<String> data = Arrays.asList(line.split(" "));
+                do
+                {
+                    line = Util.cleanInputString(line);
+                    List<String> data = Arrays.asList(line.split(" "));
 
-                criteria.add(Integer.parseInt(data.get(2)));
+                    criteria.add(Integer.parseInt(data.get(2)));
+                }
+                while ((line = br.readLine()) != null);
             }
-            while ((line = br.readLine()) != null);
 
             if(criteria.size() >= 8)
             {
@@ -410,7 +413,7 @@ public class Parser
                         break;
                 }
                 String params = "f" + c.getFrequenceId1()
-                        + " f"+c.getFrequenceId2() + " "
+                        + " f" + c.getFrequenceId2() + " "
                         + c.getK12() + (cost!=-1?" "+cost:"");
                 param.appendChild(doc.createTextNode(params));
                 constraint.appendChild(param);
