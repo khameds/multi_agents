@@ -49,25 +49,26 @@ public class Parser
         criterias = new Criteria();
     }
 
-    public void readInputs()
+    public void readInputs(int maxFrequencyId)
     {
         FileLoader fileLoader = new FileLoader();
 
         readInputs(fileLoader.getVarFile(),
                    fileLoader.getDomFile(),
                    fileLoader.getCtrFile(),
-                   fileLoader.getCstFile());
+                   fileLoader.getCstFile(), maxFrequencyId );
     }
 
-    public void readInputs(String varFile, String domFile, String ctrFile, String cstFile)
+    public void readInputs(String varFile, String domFile, String ctrFile, String cstFile, int maxFrequencyId)
     {
-        readVarFile(varFile);
+        int max = 30;
+        readVarFile(varFile,max);
         readDomFile(domFile);
-        readCtrFile(ctrFile);
+        readCtrFile(ctrFile,max);
         readCstFile(cstFile);
     }
 
-    private void readVarFile(String varFile)
+    private void readVarFile(String varFile, int maxFrequencyId)
     {
         /**
          * Read 'var.txt' File
@@ -78,10 +79,13 @@ public class Parser
             while ((line = br.readLine()) != null) {
                 line = Util.cleanInputString(line);
                 List<String> data = Arrays.asList(line.split(" "));
-                Frequency frequency = new Frequency(Integer.parseInt(data.get(0)),  // Variable Id
-                                                    0, // AgentId (unknown yet)
-                                                    Integer.parseInt(data.get(1))); // Domain Id
-                frequencies.add(frequency);
+                if(Integer.parseInt(data.get(0)) <= maxFrequencyId)
+                {
+                    Frequency frequency = new Frequency(Integer.parseInt(data.get(0)),  // Variable Id
+                                                        0, // AgentId (unknown yet)
+                                                        Integer.parseInt(data.get(1))); // Domain Id
+                    frequencies.add(frequency);
+                }
             }
             System.out.println(frequencies.size() + " frequencies added.");
             br.close(); // Free everything
@@ -137,7 +141,7 @@ public class Parser
     }
 
 
-    private void readCtrFile(String ctrFile)
+    private void readCtrFile(String ctrFile, int maxFrequencyId)
     {
         /**
          * Read 'ctr.txt' File
@@ -150,32 +154,35 @@ public class Parser
                 List<String> data = Arrays.asList(line.split(" "));
 
                 enum_ConstraintType type;
-                if(data.get(3).equals("D"))
-                    type = enum_ConstraintType.Difference;
-                else if(data.get(3).equals("C"))
-                    type = enum_ConstraintType.Cosite;
-                else if(data.get(3).equals("F"))
-                    type = enum_ConstraintType.Fixe;
-                else if(data.get(3).equals("P"))
-                    type = enum_ConstraintType.Prefixe;
-                else
-                    type = enum_ConstraintType.Farfield;
+                if((Integer.parseInt(data.get(0)) <= maxFrequencyId) && (Integer.parseInt(data.get(1)) <= maxFrequencyId))
+                {
+                    if (data.get(3).equals("D"))
+                        type = enum_ConstraintType.Difference;
+                    else if (data.get(3).equals("C"))
+                        type = enum_ConstraintType.Cosite;
+                    else if (data.get(3).equals("F"))
+                        type = enum_ConstraintType.Fixe;
+                    else if (data.get(3).equals("P"))
+                        type = enum_ConstraintType.Prefixe;
+                    else
+                        type = enum_ConstraintType.Farfield;
 
-                enum_Operator operator;
-                if(data.get(4).equals(">"))
-                    operator = enum_Operator.GREATER_THAN;
-                else
-                    operator = enum_Operator.EQUAL;
+                    enum_Operator operator;
+                    if (data.get(4).equals(">"))
+                        operator = enum_Operator.GREATER_THAN;
+                    else
+                        operator = enum_Operator.EQUAL;
 
-                Constraint constraint = new Constraint(Integer.parseInt(data.get(0)),   // Frequence 1 Id
-                                                       Integer.parseInt(data.get(1)),   // Frequence 2 Id
-                                                       type,                            // Constraint type
-                                                       operator,                        // Operator ( >, = )
-                                                       Integer.parseInt(data.get(4)));
-                // If constraints' weights are defined
-                if(data.size() > 5)
-                    constraint.setWeight(Integer.parseInt(data.get(5)));
-                constraints.add(constraint);
+                    Constraint constraint = new Constraint(Integer.parseInt(data.get(0)),   // Frequence 1 Id
+                                                           Integer.parseInt(data.get(1)),   // Frequence 2 Id
+                                                           type,                            // Constraint type
+                                                           operator,                        // Operator ( >, = )
+                                                           Integer.parseInt(data.get(4)));
+                    // If constraints' weights are defined
+                    if (data.size() > 5)
+                        constraint.setWeight(Integer.parseInt(data.get(5)));
+                    constraints.add(constraint);
+                }
              }
 
             System.out.println(constraints.size() + " constraints added.");
